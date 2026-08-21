@@ -1,0 +1,50 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "bluetooth_confirm": {
+        "description": "Do you want to set up {name}?"
+      },
+      "user": {
+        "description": "Select an Airthings device to set up.",
+        "data": {
+          "address": "Device"
+        }
+      },
+      "reconfigure": {
+        "description": "Select the Airthings device this entry should now point to.",
+        "data": {
+          "address": "Device"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Device is already configured",
+      "no_devices_found": "No unconfigured Airthings devices found",
+      "not_supported": "Unsupported Airthings device",
+      "cannot_connect": "Failed to connect to the device",
+      "reconfigure_successful": "Re-configuration was successful"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Configure how often Home Assistant actively connects over Bluetooth to read this device. Shorter intervals lower latency but drain the device's battery faster; radon/VOC/CO2 readings only refresh on-device every few minutes regardless.",
+        "data": {
+          "scan_interval": "Poll interval (seconds)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "radon_1day_avg": { "name": "Radon (1-day average)" },
+      "radon_longterm_avg": { "name": "Radon (long-term average)" },
+      "radon_7day_avg": { "name": "Radon (7-day average)" },
+      "radon_1year_avg": { "name": "Radon (1-year average)" },
+      "illuminance": { "name": "Illuminance" },
+      "noise": { "name": "Noise level" },
+      "battery_voltage": { "name": "Battery voltage" }
+    }
+  }
+}

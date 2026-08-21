@@ -1,0 +1,160 @@
+blueprint:
+  name: Airthings - Ventilation Recommendation (Indoor vs Outdoor)
+  description: >
+    Notify (and optionally auto-run a fan) when indoor CO2 or radon from an
+    Airthings sensor is elevated AND outdoor air quality/weather looks
+    favorable for venting. Outdoor conditions are read from whatever
+    sensors you point it at, so it works with Davis WeatherLink,
+    WeatherFlow Tempest, AirGradient, PurpleAir, AirVisual, etc. --
+    anything exposing standard `device_class: temperature` /
+    `carbon_dioxide` / `pm25` sensors. Window/door state uses the generic
+    `binary_sensor` on/off contract, so it works with ELK-M1 zones too
+    (ELK-M1 doesn't set a `device_class` on its own -- reclassify the
+    entity, or just point this blueprint at the raw entity_id).
+  domain: automation
+  source_url: https://github.com/trooperthorn/ha_int_airthings/blob/main/blueprints/automation/airthings/ventilation_recommendation.yaml
+  input:
+    indoor_co2_sensor:
+      name: Indoor CO2 sensor
+      description: An Airthings CO2 sensor entity (device_class carbon_dioxide).
+      selector:
+        entity:
+          filter:
+            domain: sensor
+            device_class: carbon_dioxide
+    indoor_co2_threshold:
+      name: Indoor CO2 threshold (ppm)
+      default: 1000
+      selector:
+        number:
+          min: 400
+          max: 5000
+          unit_of_measurement: ppm
+    indoor_radon_sensor:
+      name: Indoor radon sensor (optional)
+      description: An Airthings radon sensor entity (device_class radon).
+      default: ""
+      selector:
+        entity:
+          filter:
+            domain: sensor
+            device_class: radon
+    indoor_radon_threshold:
+      name: Indoor radon threshold (Bq/m3)
+      default: 150
+      selector:
+        number:
+          min: 0
+          max: 1000
+    outdoor_pm25_sensor:
+      name: Outdoor PM2.5 sensor (optional)
+      description: >
+        e.g. a Davis AirLink, PurpleAir, or AirGradient PM2.5 entity.
+        Leave unset to skip the outdoor-air-quality gate.
+      default: ""
+      selector:
+        entity:
+          filter:
+            domain: sensor
+            device_class: pm25
+    outdoor_pm25_max:
+      name: Maximum acceptable outdoor PM2.5 (µg/m3)
+      default: 35
+      selector:
+        number:
+          min: 0
+          max: 500
+    outdoor_temperature_sensor:
+      name: Outdoor temperature sensor (optional)
+      description: e.g. a Davis WeatherLink or WeatherFlow Tempest outdoor temperature entity.
+      default: ""
+      selector:
+        entity:
+          filter:
+            domain: sensor
+            device_class: temperature
+    outdoor_temp_min:
+      name: Minimum comfortable outdoor temperature
+      default: 5
+      selector:
+        number:
+          min: -30
+          max: 40
+    outdoor_temp_max:
+      name: Maximum comfortable outdoor temperature
+      default: 30
+      selector:
+        number:
+          min: -10
+          max: 50
+    window_sensors:
+      name: Window/door sensors (optional)
+      description: >
+        Binary sensors indicating open/closed windows or doors (e.g. ELK-M1
+        zones). Used only to skip notifying if a window is already open.
+      default: []
+      selector:
+        entity:
+          multiple: true
+          filter:
+            domain: binary_sensor
+    notify_target:
+      name: Notification target
+      selector:
+        target:
+          entity:
+            domain: notify
+
+variables:
+  co2_threshold: !input indoor_co2_threshold
+  radon_threshold: !input indoor_radon_threshold
+  pm25_max: !input outdoor_pm25_max
+  temp_min: !input outdoor_temp_min
+  temp_max: !input outdoor_temp_max
+  windows: !input window_sensors
+  outdoor_pm25_sensor: !input outdoor_pm25_sensor
+  outdoor_temperature_sensor: !input outdoor_temperature_sensor
+
+trigger:
+  - platform: numeric_state
+    entity_id: !input indoor_co2_sensor
+    above: !input indoor_co2_threshold
+  - platform: numeric_state
+    entity_id: !input indoor_radon_sensor
+    above: !input indoor_radon_threshold
+
+condition:
+  # Skip if every configured window is already open -- nothing to recommend.
+  - condition: template
+    value_template: >
+      {{ windows | length == 0 or windows | selectattr('state', 'eq', 'off') | list | length > 0 }}
+  # Outdoor PM2.5 gate: only recommend venting if outdoor air is at least
+  # as clean as what we'd accept indoors.
+  - condition: or
+    conditions:
+      - condition: template
+        value_template: "{{ (states(outdoor_pm25_sensor) | default('unknown')) in ['unknown', 'unavailable', ''] }}"
+        enabled: "{{ outdoor_pm25_sensor == '' }}"
+      - condition: numeric_state
+        entity_id: !input outdoor_pm25_sensor
+        below: !input outdoor_pm25_max
+        enabled: "{{ outdoor_pm25_sensor != '' }}"
+  # Outdoor temperature comfort gate.
+  - condition: or
+    conditions:
+      - condition: template
+        value_template: "{{ outdoor_temperature_sensor == '' }}"
+      - condition: numeric_state
+        entity_id: !input outdoor_temperature_sensor
+        above: !input outdoor_temp_min
+        below: !input outdoor_temp_max
+        enabled: "{{ outdoor_temperature_sensor != '' }}"
+
+action:
+  - action: notify.send_message
+    target: !input notify_target
+    data:
+      title: "Indoor air quality"
+      message: >
+        Indoor CO2 or radon is elevated and outdoor conditions look good
+        for venting -- consider opening a window.

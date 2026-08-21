@@ -1,0 +1,16 @@
+{
+  "domain": "airthings_ble",
+  "name": "Airthings BLE",
+  "codeowners": ["@trooperthorn"],
+  "config_flow": true,
+  "documentation": "https://github.com/trooperthorn/ha_int_airthings",
+  "issue_tracker": "https://github.com/trooperthorn/ha_int_airthings/issues",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "quality_scale": "silver",
+  "requirements": ["bleak>=0.21.0", "bleak-retry-connector>=3.4.0", "cbor2>=5.4.0"],
+  "bluetooth": [
+    { "manufacturer_id": 820 }
+  ],
+  "version": "0.1.0"
+}

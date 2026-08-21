@@ -1,0 +1,11 @@
+{
+  "entity": {
+    "sensor": {
+      "radon_1day_avg": { "default": "mdi:radioactive" },
+      "radon_longterm_avg": { "default": "mdi:radioactive" },
+      "radon_7day_avg": { "default": "mdi:radioactive" },
+      "radon_1year_avg": { "default": "mdi:radioactive" },
+      "noise": { "default": "mdi:volume-high" }
+    }
+  }
+}
