@@ -1,5 +1,5 @@
 {
-  "domain": "airthings_ble",
+  "domain": "airthings_local",
   "name": "Airthings BLE",
   "bluetooth": [
     { "manufacturer_id": 820 }
