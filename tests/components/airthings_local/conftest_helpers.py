@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from homeassistant.components.bluetooth import BluetoothServiceInfoBleak
 
-from custom_components.airthings_ble.const import MANUFACTURER_ID
+from custom_components.airthings_local.const import MANUFACTURER_ID
 
 
 def make_bluetooth_service_info(

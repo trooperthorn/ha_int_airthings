@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-DOMAIN = "airthings_ble"
+DOMAIN = "airthings_local"
 MANUFACTURER = "Airthings"
 
 # Airthings' Bluetooth SIG manufacturer identifier, used both for
