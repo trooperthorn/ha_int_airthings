@@ -49,10 +49,7 @@ CHAR_UUID_CURRENT_TIME = "00002a08-0000-1000-8000-00805f9b34fb"
 # and await an indicate/notify response containing battery voltage.
 BATTERY_COMMAND_BYTE = 0x6D
 
-# Atom RPC request "paths" (Wave Enhance / Corentium Home 2 only). These are
-# UTF-8 strings written to CHAR_UUID_ATOM_WRITE; the CBOR-encoded response
-# arrives via CHAR_UUID_ATOM_NOTIFY (reassembled across multiple notify
-# packets for larger payloads).
+# Atom RPC request paths (Wave Enhance / Corentium Home 2 only); see docs/protocol.md.
 ATOM_PATH_LATEST_SAMPLES = "29999/0/31012"
 ATOM_PATH_CONNECTIVITY_MODE = "17/0/31100"
 
@@ -111,10 +108,7 @@ PRESSURE_MAX_HPA = 1310.0
 
 BQ_TO_PCI_MULTIPLIER = 0.027  # Bq/m3 -> pCi/L
 
-# Battery voltage -> percentage, piecewise-linear interpolation breakpoints,
-# keyed by battery chemistry/count. Two-cell CR2032-class devices (Wave
-# Plus/Radon) vs. three-cell devices (Wave Mini) discharge on different
-# curves, so a shared curve under- or over-reports remaining life.
+# Voltage-to-percentage breakpoints differ by cell chemistry; see docs/protocol.md.
 BATTERY_CURVE_TWO_CELL: tuple[tuple[float, int], ...] = (
     (2.10, 0),
     (2.20, 5),
@@ -132,10 +126,7 @@ BATTERY_CURVE_THREE_CELL: tuple[tuple[float, int], ...] = (
     (4.50, 100),
 )
 
-# Default active-connection poll interval. User-configurable via the
-# integration's options flow (see config_flow.py) -- this fixes the
-# upstream complaint that airthings_ble's 5/30-minute interval cannot be
-# tuned per-device.
+# User-configurable poll interval (options flow); see docs/design.md.
 DEFAULT_SCAN_INTERVAL_SECONDS = 300
 CORENTIUM_HOME_2_SCAN_INTERVAL_SECONDS = 1800
 MIN_SCAN_INTERVAL_SECONDS = 60

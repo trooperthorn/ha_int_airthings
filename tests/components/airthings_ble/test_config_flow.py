@@ -6,7 +6,7 @@ requirements_test.txt.
 """
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant import config_entries
@@ -39,9 +39,19 @@ async def test_bluetooth_discovery_creates_entry(hass: HomeAssistant) -> None:
         name="Airthings Wave+", address="AA:BB:CC:DD:EE:FF"
     )
 
-    with patch(
-        "custom_components.airthings_ble.config_flow.AirthingsBleClient"
-    ) as mock_client_cls:
+    # Home Assistant core's own airthings_ble config-flow tests patch this
+    # lookup directly rather than relying on enable_bluetooth to resolve a
+    # BLEDevice from an injected advertisement; the harness has no scanner
+    # backend to actually connect one to the manager.
+    with (
+        patch(
+            "homeassistant.components.bluetooth.async_ble_device_from_address",
+            return_value=MagicMock(),
+        ),
+        patch(
+            "custom_components.airthings_ble.config_flow.AirthingsBleClient"
+        ) as mock_client_cls,
+    ):
         mock_client = AsyncMock()
         mock_client.__aenter__.return_value = mock_client
         mock_client.read_device_info.return_value = _device_info("AA:BB:CC:DD:EE:FF")

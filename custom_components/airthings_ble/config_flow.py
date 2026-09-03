@@ -138,8 +138,8 @@ class AirthingsConfigFlow(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry: ConfigEntry) -> "AirthingsOptionsFlow":
-        return AirthingsOptionsFlow(config_entry)
+    def async_get_options_flow(config_entry: ConfigEntry) -> AirthingsOptionsFlow:
+        return AirthingsOptionsFlow()
 
 
 class AirthingsOptionsFlow(OptionsFlow):
@@ -151,21 +151,18 @@ class AirthingsOptionsFlow(OptionsFlow):
     tradeoff exposed to the user, not a fixed constant.
     """
 
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        self._config_entry = config_entry
-
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         if user_input is not None:
             return self.async_create_entry(data=user_input)
 
-        default_interval = self._config_entry.options.get(
+        default_interval = self.config_entry.options.get(
             CONF_SCAN_INTERVAL,
             (
                 CORENTIUM_HOME_2_SCAN_INTERVAL_SECONDS
-                if self._config_entry.runtime_data
-                and self._config_entry.runtime_data.device_info.model
+                if self.config_entry.runtime_data
+                and self.config_entry.runtime_data.device_info.model
                 is DeviceModel.CORENTIUM_HOME_2
                 else DEFAULT_SCAN_INTERVAL_SECONDS
             ),

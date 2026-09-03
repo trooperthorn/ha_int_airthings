@@ -39,7 +39,8 @@ actual protocols narrowed that scope in one important way:
 
 See `custom_components/airthings_ble/const.py` for the full protocol
 reference (GATT UUIDs, struct layouts, scaling factors, battery discharge
-curves) with citations.
+curves) with citations, and [docs/README.md](docs/README.md) for the
+protocol and design documentation this project maintains.
 
 ## Relationship to Home Assistant core's `airthings` / `airthings_ble`
 

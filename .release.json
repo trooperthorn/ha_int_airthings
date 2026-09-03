@@ -1,0 +1,8 @@
+{
+  "tag_prefix": "v",
+  "timezone": "America/Chicago",
+  "release_paths": ["custom_components/airthings_ble"],
+  "version_fields": [
+    {"path": "custom_components/airthings_ble/manifest.json", "kind": "json", "key": "version"}
+  ]
+}

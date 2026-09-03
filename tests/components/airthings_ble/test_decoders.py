@@ -153,6 +153,6 @@ def test_map_atom_response_decodes_named_fields() -> None:
 
 
 def test_model_number_lookup_covers_every_documented_model() -> None:
-    for model_number, model in const.MODEL_NUMBER_TO_DEVICE_MODEL.items():
+    for model in const.MODEL_NUMBER_TO_DEVICE_MODEL.values():
         assert model in const.DEVICE_MODEL_NAMES
         assert model in const.STRUCT_DEVICE_MODELS or model in const.ATOM_DEVICE_MODELS

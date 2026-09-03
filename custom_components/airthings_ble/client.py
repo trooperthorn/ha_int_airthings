@@ -12,7 +12,7 @@ import struct
 from dataclasses import dataclass
 from typing import Any
 
-from bleak import BleakClient
+from bleak.backends.characteristic import BleakGATTCharacteristic
 from bleak.backends.device import BLEDevice
 from bleak_retry_connector import BleakClientWithServiceCache, establish_connection
 
@@ -88,7 +88,7 @@ def _valid_or_none(value: int, maximum: int) -> int | None:
     return value if 0 <= value < maximum else None
 
 
-def _decode_struct_payload(model: DeviceModel, payload: bytes) -> AirthingsSensorData:
+def _decode_struct_payload(model: DeviceModel, payload: bytes | bytearray) -> AirthingsSensorData:
     """Decode a legacy binary-struct GATT characteristic payload.
 
     Struct layouts and scaling factors per Airthings' official
@@ -152,7 +152,9 @@ def _populate_pci_l(data: AirthingsSensorData) -> None:
         )
 
 
-def _decode_gen1_radon(payload_1day: bytes, payload_longterm: bytes) -> AirthingsSensorData:
+def _decode_gen1_radon(
+    payload_1day: bytes | bytearray, payload_longterm: bytes | bytearray
+) -> AirthingsSensorData:
     data = AirthingsSensorData()
     (radon_1day_raw,) = struct.unpack("<H", payload_1day)
     (radon_longterm_raw,) = struct.unpack("<H", payload_longterm)
@@ -168,7 +170,7 @@ def _voltage_to_percentage(voltage: float, curve: tuple[tuple[float, int], ...])
         return curve[0][1]
     if voltage >= curve[-1][0]:
         return curve[-1][1]
-    for (v_low, p_low), (v_high, p_high) in zip(curve, curve[1:]):
+    for (v_low, p_low), (v_high, p_high) in zip(curve, curve[1:], strict=True):
         if v_low <= voltage <= v_high:
             span = v_high - v_low
             if span == 0:
@@ -194,7 +196,7 @@ class _NotifyBuffer:
     data: bytearray
 
     @classmethod
-    def create(cls) -> "_NotifyBuffer":
+    def create(cls) -> _NotifyBuffer:
         return cls(event=asyncio.Event(), data=bytearray())
 
 
@@ -205,9 +207,9 @@ class AirthingsBleClient:
         self._ble_device = ble_device
         self._client: BleakClientWithServiceCache | None = None
 
-    async def __aenter__(self) -> "AirthingsBleClient":
+    async def __aenter__(self) -> AirthingsBleClient:
         self._client = await establish_connection(
-            BleakClient,
+            BleakClientWithServiceCache,
             self._ble_device,
             self._ble_device.address,
             max_attempts=MAX_CONNECT_ATTEMPTS,
@@ -220,7 +222,7 @@ class AirthingsBleClient:
             self._client = None
 
     @property
-    def _require_client(self) -> BleakClient:
+    def _require_client(self) -> BleakClientWithServiceCache:
         if self._client is None:
             raise AirthingsBleError("Not connected")
         return self._client
@@ -312,7 +314,7 @@ class AirthingsBleClient:
 
         buffer = _NotifyBuffer.create()
 
-        def _on_notify(_handle: int, payload: bytearray) -> None:
+        def _on_notify(_characteristic: BleakGATTCharacteristic, payload: bytearray) -> None:
             buffer.data.extend(payload)
             buffer.event.set()
 
@@ -340,7 +342,7 @@ class AirthingsBleClient:
 
         buffer = _NotifyBuffer.create()
 
-        def _on_notify(_handle: int, payload: bytearray) -> None:
+        def _on_notify(_characteristic: BleakGATTCharacteristic, payload: bytearray) -> None:
             buffer.data.extend(payload)
             buffer.event.set()
 

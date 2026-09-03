@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
-from typing import TypeAlias
 
 from homeassistant.components import bluetooth
 from homeassistant.config_entries import ConfigEntry
@@ -20,12 +19,12 @@ _LOGGER = logging.getLogger(__name__)
 class AirthingsDataUpdateCoordinator(DataUpdateCoordinator[AirthingsSensorData]):
     """Connects to one Airthings BLE device on a schedule and decodes it."""
 
-    config_entry: "AirthingsConfigEntry"
+    config_entry: AirthingsConfigEntry
 
     def __init__(
         self,
         hass: HomeAssistant,
-        config_entry: "AirthingsConfigEntry",
+        config_entry: AirthingsConfigEntry,
         address: str,
         device_info: AirthingsDeviceInfo,
         scan_interval_seconds: int,
@@ -59,4 +58,4 @@ class AirthingsDataUpdateCoordinator(DataUpdateCoordinator[AirthingsSensorData])
         return data
 
 
-AirthingsConfigEntry: TypeAlias = ConfigEntry[AirthingsDataUpdateCoordinator]
+type AirthingsConfigEntry = ConfigEntry[AirthingsDataUpdateCoordinator]

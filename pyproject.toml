@@ -2,10 +2,10 @@
 name = "ha-int-airthings"
 version = "0.1.0"
 description = "Home Assistant custom integration for local Airthings BLE devices"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.14"
 strict = true
 warn_unreachable = true
 show_error_codes = true
@@ -16,7 +16,7 @@ module = ["bleak_retry_connector.*", "cbor2.*"]
 ignore_missing_imports = true
 
 [tool.ruff]
-target-version = "py313"
+target-version = "py314"
 line-length = 100
 
 [tool.ruff.lint]

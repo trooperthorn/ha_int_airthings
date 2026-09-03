@@ -11,12 +11,10 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
-    CONCENTRATION_PARTS_PER_BILLION,
-    CONCENTRATION_PARTS_PER_MILLION,
-    EntityCategory,
-    PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+    EntityCategory,
     UnitOfPressure,
+    UnitOfRatio,
     UnitOfSoundPressure,
     UnitOfTemperature,
 )
@@ -27,11 +25,7 @@ from .coordinator import AirthingsConfigEntry, AirthingsDataUpdateCoordinator
 from .entity import AirthingsEntity
 from .models import AirthingsSensorData
 
-# Home Assistant doesn't ship a native radon unit constant usable as a
-# SensorDeviceClass.RADON base unit at the time of writing; Bq/m3 is the
-# scientifically standard unit and what the device reports natively, so
-# entities are created directly in Bq/m3 with `suggested_unit_of_measurement`
-# left to HA's unit-system conversion for pCi/L-preferring locales.
+# Bq/m3 chosen over a nonexistent HA radon unit constant; see docs/design.md.
 RADON_UNIT_BQ_M3 = "Bq/m³"
 
 
@@ -53,7 +47,7 @@ SENSOR_DESCRIPTIONS: tuple[AirthingsSensorEntityDescription, ...] = (
     AirthingsSensorEntityDescription(
         key="humidity",
         device_class=SensorDeviceClass.HUMIDITY,
-        native_unit_of_measurement=PERCENTAGE,
+        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda data: data.humidity,
     ),
@@ -67,14 +61,14 @@ SENSOR_DESCRIPTIONS: tuple[AirthingsSensorEntityDescription, ...] = (
     AirthingsSensorEntityDescription(
         key="co2",
         device_class=SensorDeviceClass.CO2,
-        native_unit_of_measurement=CONCENTRATION_PARTS_PER_MILLION,
+        native_unit_of_measurement=UnitOfRatio.PARTS_PER_MILLION,
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda data: data.co2,
     ),
     AirthingsSensorEntityDescription(
         key="voc",
         device_class=SensorDeviceClass.VOLATILE_ORGANIC_COMPOUNDS_PARTS,
-        native_unit_of_measurement=CONCENTRATION_PARTS_PER_BILLION,
+        native_unit_of_measurement=UnitOfRatio.PARTS_PER_BILLION,
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda data: data.voc,
     ),
@@ -115,7 +109,7 @@ SENSOR_DESCRIPTIONS: tuple[AirthingsSensorEntityDescription, ...] = (
     AirthingsSensorEntityDescription(
         key="illuminance",
         translation_key="illuminance",
-        native_unit_of_measurement=PERCENTAGE,
+        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -133,7 +127,7 @@ SENSOR_DESCRIPTIONS: tuple[AirthingsSensorEntityDescription, ...] = (
     AirthingsSensorEntityDescription(
         key="battery_percentage",
         device_class=SensorDeviceClass.BATTERY,
-        native_unit_of_measurement=PERCENTAGE,
+        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda data: data.battery_percentage,
