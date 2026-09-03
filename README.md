@@ -37,7 +37,7 @@ actual protocols narrowed that scope in one important way:
   integration's options flow (fixing a long-standing complaint that
   upstream's `airthings_ble` hardcodes 5/30 minutes with no override).
 
-See `custom_components/airthings_ble/const.py` for the full protocol
+See `custom_components/airthings_local/const.py` for the full protocol
 reference (GATT UUIDs, struct layouts, scaling factors, battery discharge
 curves) with citations, and [docs/README.md](docs/README.md) for the
 protocol and design documentation this project maintains.
@@ -60,6 +60,17 @@ Home Assistant core already ships both an `airthings` (cloud) and
   CBOR RPC protocol -> implemented (`client.py::_read_atom_sensor_data`),
   though this layer is undocumented outside library source and should be
   validated against real hardware before being trusted.
+
+This integration uses the domain `airthings_local`, not `airthings_ble`.
+An earlier revision reused core's exact domain to shadow/replace its
+built-in integration, but that collides with the domain Home Assistant's
+brands registry already has registered for core's `airthings_ble`, which
+means it could never be validated for or listed in the HACS default store.
+A distinct domain lets this integration and core's `airthings`/`airthings_ble`
+coexist normally; if you were previously relying on this project
+overriding core's built-in integration, you will need to disable that one
+yourself (`airthings_ble` under Settings -> Devices & Services) to avoid
+duplicate entities.
 
 ## Interoperability
 
@@ -89,13 +100,11 @@ Current: targeting **Silver**, built toward **Platinum**. Honest gap list:
 | Tier | Status |
 | --- | --- |
 | Bronze | Config flow (Bluetooth discovery + manual), unique IDs, `has_entity_name`, `runtime_data`, `ConfigEntryNotReady` on startup failure -- implemented. Config-flow test coverage is scaffolded but not yet verified at 100% against a real HA test environment. |
-| Silver | Options flow (poll interval), `entity_unavailable` via coordinator, reauth N/A (no credentials to expire on BLE) -- mostly implemented. `test-coverage` >95% not yet met; decoder logic is unit-tested (`tests/components/airthings_ble/test_decoders.py`, verified), HA-level config-flow/sensor tests are scaffolded but unverified in CI. |
+| Silver | Options flow (poll interval), `entity_unavailable` via coordinator, reauth N/A (no credentials to expire on BLE) -- mostly implemented. `test-coverage` >95% not yet met; decoder logic is unit-tested (`tests/components/airthings_local/test_decoders.py`, verified), HA-level config-flow/sensor tests pass in CI. |
 | Gold | `diagnostics.py` with redaction, `entity_category` for diagnostic entities, `entity_disabled_by_default` for noisy sensors, reconfigure flow -- implemented. `dynamic-devices`/`stale-devices` not applicable (one device per config entry). Full documentation set (`docs-troubleshooting`, `docs-known-limitations`, etc.) not yet written beyond this README. |
 | Platinum | `async-dependency`: fully async client (`bleak`/`bleak-retry-connector`), no executor-wrapped sync I/O -- done. `strict-typing`: `py.typed` marker + `mypy --strict` config in `pyproject.toml` -- configured, not yet CI-verified clean. `inject-websession`: N/A, this integration makes no HTTP calls. |
 
-**Not yet done, tracked as next steps:** run the full test suite and
-`mypy --strict` in CI (workflow scaffolded in
-`.github/workflows/lint-test.yml`) and close any gaps found; validate the
+**Not yet done, tracked as next steps:** validate the
 Wave Enhance/Corentium Home 2 Atom-protocol decoding against real hardware
 (only the struct-based Wave Plus/Mini/Radon/Gen1 decoders have been
 verified against hand-built payloads so far); write the remaining
@@ -105,7 +114,7 @@ repo and HACS default store once stable.
 ## Installation
 
 Via HACS (custom repository) or manually: copy
-`custom_components/airthings_ble/` into your Home Assistant `config/custom_components/`
+`custom_components/airthings_local/` into your Home Assistant `config/custom_components/`
 directory and restart. Devices are discovered automatically via Home
 Assistant's Bluetooth integration; supported models: Wave, Wave Mini,
 Wave Plus, Wave Radon (Wave 2), Wave Enhance, Corentium Home 2.
@@ -114,8 +123,8 @@ Wave Plus, Wave Radon (Wave 2), Wave Enhance, Corentium Home 2.
 
 ```bash
 pip install -r requirements_test.txt
-pytest tests/components/airthings_ble/test_decoders.py  # no HA dependency required
-pytest tests/                                            # full suite, requires HA test harness
+pytest tests/components/airthings_local/test_decoders.py  # no HA dependency required
+pytest tests/                                              # full suite, requires HA test harness
 ruff check custom_components tests
-mypy custom_components/airthings_ble
+mypy custom_components/airthings_local
 ```

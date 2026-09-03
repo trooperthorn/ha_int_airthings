@@ -30,6 +30,6 @@ jobs:
       - name: Run the suite
         run: pytest tests/ -q
       - name: Lint
-        run: ruff check custom_components/airthings_ble tests
+        run: ruff check custom_components/airthings_local tests
       - name: Type check
-        run: mypy --python-version 3.14 custom_components/airthings_ble/
+        run: mypy --python-version 3.14 custom_components/airthings_local/
