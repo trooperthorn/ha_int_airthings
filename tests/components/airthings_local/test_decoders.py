@@ -11,7 +11,7 @@ import struct
 
 import pytest
 
-from custom_components.airthings_ble import client, const
+from custom_components.airthings_local import client, const
 
 
 def test_decode_wave_plus_payload() -> None:

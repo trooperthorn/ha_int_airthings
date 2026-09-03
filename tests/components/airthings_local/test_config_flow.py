@@ -13,8 +13,8 @@ from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
-from custom_components.airthings_ble.const import DOMAIN, DeviceModel
-from custom_components.airthings_ble.models import AirthingsDeviceInfo
+from custom_components.airthings_local.const import DOMAIN, DeviceModel
+from custom_components.airthings_local.models import AirthingsDeviceInfo
 
 from .conftest_helpers import make_bluetooth_service_info
 
@@ -49,7 +49,7 @@ async def test_bluetooth_discovery_creates_entry(hass: HomeAssistant) -> None:
             return_value=MagicMock(),
         ),
         patch(
-            "custom_components.airthings_ble.config_flow.AirthingsBleClient"
+            "custom_components.airthings_local.config_flow.AirthingsBleClient"
         ) as mock_client_cls,
     ):
         mock_client = AsyncMock()
