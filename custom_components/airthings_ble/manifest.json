@@ -6,6 +6,7 @@
   ],
   "codeowners": ["@trooperthorn"],
   "config_flow": true,
+  "dependencies": ["bluetooth_adapters"],
   "documentation": "https://github.com/trooperthorn/ha_int_airthings",
   "integration_type": "device",
   "iot_class": "local_polling",
