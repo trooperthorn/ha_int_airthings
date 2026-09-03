@@ -42,4 +42,4 @@ jobs:
       - name: Compile Python
         run: python -m compileall -q custom_components tests
       - name: Bandit medium/high findings
-        run: bandit -q -r custom_components/airthings_ble -ll
+        run: bandit -q -r custom_components/airthings_local -ll
