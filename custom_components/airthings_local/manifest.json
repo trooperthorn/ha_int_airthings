@@ -19,9 +19,9 @@
   "issue_tracker": "https://github.com/trooperthorn/ha_int_airthings/issues",
   "quality_scale": "silver",
   "requirements": [
-    "bleak>=0.21.0",
-    "bleak-retry-connector>=3.4.0",
-    "cbor2>=5.4.0"
+    "bleak==3.0.2",
+    "bleak-retry-connector==4.7.0",
+    "cbor2==6.1.4"
   ],
   "version": "2026.09.03.2"
 }

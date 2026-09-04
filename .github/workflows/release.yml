@@ -1,8 +1,4 @@
-# Reconciles the version on main into a GitHub Release. A normal merge to
-# main is the release trigger: maintainers never create or push tags by hand.
-# This repository installs from the tagged tree (no zip_release in
-# hacs.json), so there is no archive, SBOM, checksum, or attestation step;
-# the tag and the manifest version are the verifiable artifact.
+# A merge to main is the release trigger; see docs/README.md.
 name: Release
 
 on:
