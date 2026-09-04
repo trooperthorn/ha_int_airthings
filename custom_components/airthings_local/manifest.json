@@ -23,5 +23,5 @@
     "bleak-retry-connector==4.7.0",
     "cbor2==6.1.4"
   ],
-  "version": "2026.09.03.2"
+  "version": "2026.09.04.1"
 }
