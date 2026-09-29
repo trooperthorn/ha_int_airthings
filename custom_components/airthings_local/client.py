@@ -8,10 +8,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import struct
 from dataclasses import dataclass
 from typing import Any
 
+import cbor2
 from bleak.backends.characteristic import BleakGATTCharacteristic
 from bleak.backends.device import BLEDevice
 from bleak_retry_connector import BleakClientWithServiceCache, establish_connection
@@ -19,6 +21,9 @@ from bleak_retry_connector import BleakClientWithServiceCache, establish_connect
 from .const import (
     ATOM_DEVICE_MODELS,
     ATOM_PATH_LATEST_SAMPLES,
+    ATOM_REQUEST_INFIX,
+    ATOM_REQUEST_PREFIX,
+    ATOM_RESPONSE_HEADER,
     BATTERY_COMMAND_BYTE,
     BATTERY_CURVE_THREE_CELL,
     BATTERY_CURVE_TWO_CELL,
@@ -73,6 +78,11 @@ _BATTERY_RESPONSE_FORMAT: dict[DeviceModel, tuple[str, int]] = {
     DeviceModel.WAVE_RADON: ("<L2BH2B9H", 13),
     DeviceModel.WAVE_MINI: ("<2L4B2HL4HL", 11),
 }
+
+
+_ATOM_KEYS = frozenset(
+    {"TMP", "HUM", "PRS", "CO2", "VOC", "NOI", "LUX", "R24", "R7D", "R30", "R1Y", "BAT"}
+)
 
 
 class AirthingsBleError(Exception):
@@ -330,16 +340,8 @@ class AirthingsBleClient:
         return _decode_battery_response(model, bytes(buffer.data))
 
     async def _read_atom_sensor_data(self) -> AirthingsSensorData:
-        """Read latest samples from a Wave Enhance / Corentium Home 2.
-
-        These devices use Airthings' newer CBOR-encoded "Atom" RPC layer
-        rather than fixed-offset structs: a UTF-8 request path is written
-        to CHAR_UUID_ATOM_WRITE, and the CBOR response (a mapping of short
-        mnemonic keys) arrives via notify on CHAR_UUID_ATOM_NOTIFY,
-        possibly split across several notification packets.
-        """
-        import cbor2  # local import: only needed for Atom-family devices
-
+        """Read latest samples over the Atom RPC layer; framing in docs/protocol.md."""
+        token = os.urandom(2)
         buffer = _NotifyBuffer.create()
 
         def _on_notify(_characteristic: BleakGATTCharacteristic, payload: bytearray) -> None:
@@ -350,15 +352,47 @@ class AirthingsBleClient:
         await client.start_notify(CHAR_UUID_ATOM_NOTIFY, _on_notify)
         try:
             await client.write_gatt_char(
-                CHAR_UUID_ATOM_WRITE, ATOM_PATH_LATEST_SAMPLES.encode("utf-8")
+                CHAR_UUID_ATOM_WRITE, _atom_request(ATOM_PATH_LATEST_SAMPLES, token)
             )
             async with asyncio.timeout(CONNECT_TIMEOUT_SECONDS):
                 await buffer.event.wait()
         finally:
             await client.stop_notify(CHAR_UUID_ATOM_NOTIFY)
 
-        decoded: dict[str, Any] = cbor2.loads(bytes(buffer.data))
+        decoded = _parse_atom_response(bytes(buffer.data), token, ATOM_PATH_LATEST_SAMPLES)
         return _map_atom_response(decoded)
+
+
+def _atom_request(path: str, token: bytes) -> bytes:
+    encoded_path: bytes = cbor2.dumps(path)
+    return ATOM_REQUEST_PREFIX + token + ATOM_REQUEST_INFIX + encoded_path
+
+
+def _parse_atom_response(raw: bytes, token: bytes, path: str) -> dict[str, Any]:
+    """Validate an Atom response frame and return its sample mapping."""
+    if raw[:5] != ATOM_RESPONSE_HEADER:
+        raise AirthingsBleError(
+            f"Atom response header {raw[:5].hex()} is not {ATOM_RESPONSE_HEADER.hex()}"
+        )
+    if raw[5:7] != token:
+        raise AirthingsBleError("Atom response does not echo the request token")
+    try:
+        body = cbor2.loads(raw[7:])
+    except cbor2.CBORDecodeError as err:
+        raise AirthingsBleError(f"Atom response is not valid CBOR: {err}") from err
+    if not isinstance(body, list) or not body or not isinstance(body[0], dict):
+        raise AirthingsBleError("Atom response body is not a list of maps")
+    if body[0].get(0) != path:
+        raise AirthingsBleError(f"Atom response path {body[0].get(0)!r} is not {path!r}")
+    data = body[0].get(2)
+    if isinstance(data, bytes):
+        data = cbor2.loads(data)
+    if not isinstance(data, dict):
+        raise AirthingsBleError("Atom response carries no sample map")
+    unmapped = sorted(set(data) - _ATOM_KEYS)
+    if unmapped:
+        _LOGGER.debug("Unmapped Atom sample keys %s in %s", unmapped, data)
+    return data
 
 
 def _map_atom_response(decoded: dict[str, Any]) -> AirthingsSensorData:
@@ -381,7 +415,7 @@ def _map_atom_response(decoded: dict[str, Any]) -> AirthingsSensorData:
         data.radon_1day_avg = _valid_or_none(radon_24h, RADON_MAX_BQM3)
     if (radon_7d := decoded.get("R7D")) is not None:
         data.radon_7day_avg = _valid_or_none(radon_7d, RADON_MAX_BQM3)
-    if (radon_30d := decoded.get("R30D")) is not None:
+    if (radon_30d := decoded.get("R30")) is not None:
         data.radon_30day_avg = _valid_or_none(radon_30d, RADON_MAX_BQM3)
         data.radon_longterm_avg = data.radon_30day_avg
     if (radon_1y := decoded.get("R1Y")) is not None:

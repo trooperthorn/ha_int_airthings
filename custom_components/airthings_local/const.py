@@ -38,7 +38,7 @@ CHAR_UUID_COMMAND_WAVE_PLUS = "b42e2d06-ade7-11e4-89d3-123b93f75cba"
 CHAR_UUID_COMMAND_WAVE_RADON = "b42e50d8-ade7-11e4-89d3-123b93f75cba"
 CHAR_UUID_COMMAND_WAVE_MINI = "b42e3ef4-ade7-11e4-89d3-123b93f75cba"
 
-CHAR_UUID_ATOM_WRITE = "b42eb73a-ade7-11e4-89d3-123b93f75cba"  # Wave Enhance / Corentium Home 2
+CHAR_UUID_ATOM_WRITE = "b42eb73a-ade7-11e4-89d3-123b93f75cba"  # Atom models
 CHAR_UUID_ATOM_NOTIFY = "b42ebc9e-ade7-11e4-89d3-123b93f75cba"
 
 CHAR_UUID_TEMPERATURE = "00002a6e-0000-1000-8000-00805f9b34fb"  # Wave (gen 1)
@@ -49,7 +49,10 @@ CHAR_UUID_CURRENT_TIME = "00002a08-0000-1000-8000-00805f9b34fb"
 # and await an indicate/notify response containing battery voltage.
 BATTERY_COMMAND_BYTE = 0x6D
 
-# Atom RPC request paths (Wave Enhance / Corentium Home 2 only); see docs/protocol.md.
+# Atom RPC framing and request paths; see docs/protocol.md.
+ATOM_REQUEST_PREFIX = bytes.fromhex("0301")
+ATOM_REQUEST_INFIX = bytes.fromhex("81a100")
+ATOM_RESPONSE_HEADER = bytes.fromhex("1001000345")
 ATOM_PATH_LATEST_SAMPLES = "29999/0/31012"
 ATOM_PATH_CONNECTIVITY_MODE = "17/0/31100"
 

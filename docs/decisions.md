@@ -19,3 +19,20 @@ integrations.
 
 Rejected: exact pins tracked by hand against every core release, which is the failure
 mode this replaces.
+
+## 2026-09-29: Atom requests use the airthings-ble framing; the View Plus stays unsupported
+
+Rejected: keeping the bare UTF-8 path write and flat CBOR decode. airthings-ble frames every
+request with a prefix, a random token, and a CBOR-encoded path, and validates a header and the
+echoed token before decoding a nested payload (see protocol.md). The bare form was never tested
+on hardware and does not match the only reference implementation, so Wave Enhance and Corentium
+Home 2 support is treated as unproven until now.
+
+Rejected: mapping the View Plus (2960) as an Atom model. A GATT dump showed it exposes only the
+Atom channel, so the latest-samples request was tried from a workstation. The View Plus answered
+with a "not found" style reply for that path, and an HCI snoop capture showed the Airthings app
+never connects to it over Bluetooth to show readings (see protocol.md). Mapping it would make
+every poll fail, so discovery keeps ending in "not supported".
+
+`cbor2` is now imported at module level rather than inside the Atom path, so it is also listed
+in `requirements_test.txt`; the lazy import had hidden that the test environment lacked it.

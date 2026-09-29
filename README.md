@@ -12,14 +12,14 @@ transport performance, and cross-integration interoperability (HVAC,
 window/door sensors, outdoor weather stations). Research into Airthings'
 actual protocols narrowed that scope in one important way:
 
-- **Airthings View / View Plus / View Pollution have no local API.**
-  Airthings' own `airthings-ble` library explicitly refuses to read sensor
-  data from View-series devices over BLE (BLE is setup-only on that
-  hardware), and there is no documented local HTTP/REST endpoint anywhere
-  in Airthings' public docs, GitHub org, or the wider open-source
-  ecosystem. View devices stream exclusively to Airthings' cloud. Any
-  integration covering them is necessarily `cloud_polling`, not local --
-  that's out of scope here.
+- **The View series is not supported.** Airthings' own `airthings-ble`
+  library lists no View model, and there is no documented local HTTP
+  endpoint. Tests on a View Plus (model 2960) on 2026-09-29 found that it
+  speaks the Atom protocol but answers the latest-samples request with a
+  "not found" reply, and a Bluetooth capture showed the Airthings app
+  never connects to it over Bluetooth to show readings. No local path to
+  its sensor data is known; details in [docs/protocol.md](docs/protocol.md).
+  Discovery of a View device ends with "not supported".
 - **Wave Plus, Wave Mini, Wave Radon, Wave Enhance, and Corentium Home 2
   are fully local via Bluetooth LE**, with a documented (if
   unofficial-outside-the-source-code) GATT protocol. This integration
@@ -57,9 +57,10 @@ Home Assistant core already ships both an `airthings` (cloud) and
 - Missing Wave 2/Radon battery entity -> read via the same command/notify
   RPC used for Wave Plus, model-parameterized.
 - No local coverage for the newer Wave Enhance / Corentium Home 2 "Atom"
-  CBOR RPC protocol -> implemented (`client.py::_read_atom_sensor_data`),
-  though this layer is undocumented outside library source and should be
-  validated against real hardware before being trusted.
+  CBOR RPC protocol -> implemented (`client.py::_read_atom_sensor_data`)
+  with the request framing and response validation `airthings-ble` uses.
+  This layer is undocumented outside library source and has not been
+  validated against real hardware yet.
 
 This integration uses the domain `airthings_local`, not `airthings_ble`.
 An earlier revision reused core's exact domain to shadow/replace its
