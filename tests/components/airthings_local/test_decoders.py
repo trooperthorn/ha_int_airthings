@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import struct
 
+import cbor2
 import pytest
 
 from custom_components.airthings_local import client, const
@@ -130,7 +131,7 @@ def test_map_atom_response_decodes_named_fields() -> None:
         "LUX": 10,
         "R24": 20,
         "R7D": 18,
-        "R30D": 22,
+        "R30": 22,
         "R1Y": 25,
         "BAT": 3000,
     }
@@ -150,6 +151,47 @@ def test_map_atom_response_decodes_named_fields() -> None:
     assert data.radon_1year_avg == 25
     assert data.battery_voltage == pytest.approx(3.0)
     assert data.battery_percentage == 100
+
+
+TOKEN = bytes.fromhex("beef")
+
+
+def _atom_frame(entry: object, token: bytes = TOKEN) -> bytes:
+    return const.ATOM_RESPONSE_HEADER + token + cbor2.dumps(entry)
+
+
+def test_atom_request_matches_airthings_ble_framing() -> None:
+    request = client._atom_request(const.ATOM_PATH_LATEST_SAMPLES, TOKEN)
+    assert request == bytes.fromhex("0301beef81a100") + cbor2.dumps("29999/0/31012")
+
+
+@pytest.mark.parametrize("nested", [True, False])
+def test_parse_atom_response_returns_sample_map(nested: bool) -> None:
+    samples = {"TMP": 29515, "PM25": 3}
+    payload = cbor2.dumps(samples) if nested else samples
+    raw = _atom_frame([{0: const.ATOM_PATH_LATEST_SAMPLES, 2: payload}])
+    assert client._parse_atom_response(raw, TOKEN, const.ATOM_PATH_LATEST_SAMPLES) == samples
+
+
+@pytest.mark.parametrize(
+    ("raw", "message"),
+    [
+        (b"\x00" * 5 + TOKEN + cbor2.dumps([{}]), "header"),
+        (_atom_frame([{0: "29999/0/31012", 2: {}}], token=b"\x00\x00"), "token"),
+        (const.ATOM_RESPONSE_HEADER + TOKEN + b"\x82\x01", "CBOR"),
+        (_atom_frame({"not": "a list"}), "list of maps"),
+        (_atom_frame([{0: "17/0/31100", 2: {}}]), "path"),
+        (_atom_frame([{0: "29999/0/31012", 2: 7}]), "sample map"),
+    ],
+)
+def test_parse_atom_response_rejects_bad_frames(raw: bytes, message: str) -> None:
+    with pytest.raises(client.AirthingsBleError, match=message):
+        client._parse_atom_response(raw, TOKEN, const.ATOM_PATH_LATEST_SAMPLES)
+
+
+def test_view_series_is_not_mapped() -> None:
+    for model_number in ("2960", "2980", "2989"):
+        assert model_number not in const.MODEL_NUMBER_TO_DEVICE_MODEL
 
 
 def test_model_number_lookup_covers_every_documented_model() -> None:
