@@ -2,7 +2,7 @@ pytest>=8.0.0
 pytest-asyncio>=1.4.0
 pytest-homeassistant-custom-component
 mypy>=2.3.1
-ruff>=0.16.8
+ruff>=0.16.9
 # pytest-homeassistant-custom-component's release metadata can lag the final
 # Home Assistant release; pin explicitly so the harness re-resolves to
 # stable instead of the beta it was built from.
