@@ -2,6 +2,15 @@
 
 Dated decisions with the alternative rejected and why.
 
+## 2026-10-08: Minimum Home Assistant is 2026.10.0, schemas use probatio
+
+Core 2026.10 types `async_show_form(data_schema=...)` as a probatio schema, so
+the voluptuous schemas failed mypy (developer blog 2026-09-30, "Probatio is our
+validation engine"). The config and options flows now import `probatio`
+directly, as core does. The suite pins core 2026.10.0 (and `serialx` 1.11.0 to
+match its constraints), and `hacs.json` follows the tested core. Rejected:
+aliasing `probatio as vol`, which core's lint config bans.
+
 ## 2026-09-06: packages core constrains are declared as ranges
 
 Home Assistant installs a custom integration's requirements with core's own
