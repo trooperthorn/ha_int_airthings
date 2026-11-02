@@ -2,14 +2,14 @@ pytest>=8.0.0
 pytest-asyncio>=1.4.0
 pytest-homeassistant-custom-component
 mypy>=2.4.0
-ruff>=0.17.1
+ruff>=0.17.3
 # pytest-homeassistant-custom-component's release metadata can lag the final
 # Home Assistant release; pin explicitly so the harness re-resolves to
 # stable instead of the beta it was built from.
-homeassistant==2026.10.2
+homeassistant==2026.10.4
 # Transitive imports of homeassistant.components.usb (pulled in by
 # homeassistant.components.bluetooth) that the homeassistant package itself
 # does not declare as install requirements.
 cbor2==6.1.5
-serialx==1.14.0
+serialx==1.15.1
 aiousbwatcher==1.1.2
