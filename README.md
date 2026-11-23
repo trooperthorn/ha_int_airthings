@@ -125,7 +125,7 @@ Wave Plus, Wave Radon (Wave 2), Wave Enhance, Corentium Home 2.
 ```bash
 pip install -r requirements_test.txt
 pytest tests/components/airthings_local/test_decoders.py  # no HA dependency required
-pytest tests/                                              # full suite, requires HA test harness
+pytest tests/                                              # full suite, requires pytest-homeassistant (Linux/WSL)
 ruff check custom_components tests
 mypy custom_components/airthings_local
 ```

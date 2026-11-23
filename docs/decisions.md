@@ -2,6 +2,26 @@
 
 Dated decisions with the alternative rejected and why.
 
+## 2026-11-23: Test harness is pytest-homeassistant, pinned with core
+
+`pytest-homeassistant-custom-component` stopped at 0.13.375 (core 2026.10.4); its
+README points to `pytest-homeassistant`, which home-assistant/core now publishes
+itself. Core 2026.11 moved to `httpx2` and the old plugin fails before collection, so
+the suite could not follow core past 2026.10. `requirements_test.txt` now pins
+`pytest-homeassistant[bluetooth]==2026.11.1` next to `homeassistant==2026.11.1`. Each
+harness release pins the exact matching core, pytest and pytest-asyncio, so the two
+pins must move together and the local `pytest>=8.0.0` range is gone. The `bluetooth`
+extra replaces the hand-kept `serialx` and `aiousbwatcher` pins. Per the package
+README, `pyproject.toml` sets `asyncio_default_fixture_loop_scope`, `pythonpath` and
+`-p no:respx` (the harness installs respx; its pytest plugin would import httpx
+before core installs its alias), and `tests/conftest.py` drops the `pytest_plugins`
+registration and the `enable_custom_integrations` wrapper, since the plugin loads by
+entry point and enables custom integrations by default. `hacs.json` keeps 2026.10.0
+as the minimum: the integration code did not change.
+
+Rejected: staying on core 2026.10.4 with the old harness, which freezes the tested
+core at a release that no longer gets fixes.
+
 ## 2026-10-08: Minimum Home Assistant is 2026.10.0, schemas use probatio
 
 Core 2026.10 types `async_show_form(data_schema=...)` as a probatio schema, so
