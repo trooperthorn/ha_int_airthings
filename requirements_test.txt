@@ -7,6 +7,6 @@
 pytest-homeassistant[bluetooth]==2026.11.1
 homeassistant==2026.11.1
 mypy>=2.4.1
-ruff>=0.17.3
+ruff>=0.17.6
 # Imported at module level by the integration's Atom client.
 cbor2==6.3.0
