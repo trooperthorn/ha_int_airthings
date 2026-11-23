@@ -1,16 +1,12 @@
-pytest>=8.0.0
-# pytest-asyncio is pinned exactly by pytest-homeassistant-custom-component;
-# do not add a local range here, Dependabot cannot bump it independently.
-pytest-homeassistant-custom-component
+# pytest-homeassistant is published from home-assistant/core and pins the exact
+# matching homeassistant release plus pytest, pytest-asyncio and the other test
+# plugins, so none of those get a local range here. The bluetooth extra
+# supplies the packages homeassistant.components.bluetooth/usb import
+# (serialx, aiousbwatcher, habluetooth, ...) at the versions core tests with.
+# Bump this pin and the homeassistant pin below together, to the same version.
+pytest-homeassistant[bluetooth]==2026.11.1
+homeassistant==2026.11.1
 mypy>=2.4.1
 ruff>=0.17.3
-# pytest-homeassistant-custom-component's release metadata can lag the final
-# Home Assistant release; pin explicitly so the harness re-resolves to
-# stable instead of the beta it was built from.
-homeassistant==2026.11.1
-# Transitive imports of homeassistant.components.usb (pulled in by
-# homeassistant.components.bluetooth) that the homeassistant package itself
-# does not declare as install requirements.
+# Imported at module level by the integration's Atom client.
 cbor2==6.3.0
-serialx==1.15.1
-aiousbwatcher==1.1.2
