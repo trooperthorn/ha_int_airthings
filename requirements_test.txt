@@ -4,8 +4,8 @@
 # supplies the packages homeassistant.components.bluetooth/usb import
 # (serialx, aiousbwatcher, habluetooth, ...) at the versions core tests with.
 # Bump this pin and the homeassistant pin below together, to the same version.
-pytest-homeassistant[bluetooth]==2026.11.1
-homeassistant==2026.11.1
+pytest-homeassistant[bluetooth]==2026.11.3
+homeassistant==2026.11.3
 mypy>=2.4.1
 ruff>=0.17.3
 # Imported at module level by the integration's Atom client.
